@@ -1,29 +1,43 @@
-'use client';
+"use client";
 
 import { useState } from "react";
-
-type DataItem = {
-  sno: number;
-  name: string;
-  age: number;
-  email: string;
-};
+import { initialData } from "./data";
 
 export default function Home() {
-  const initialData: DataItem[] = [
-    { sno: 1, name: "John Doe", age: 22, email: "john.doe@example.com" },
-    { sno: 2, name: "Jane Doe", age: 26, email: "jane.doe@example.com" },
-    { sno: 3, name: "Jim Doe", age: 26, email: "jim.doe@example.com" },
-    { sno: 4, name: "Jill Doe", age: 22, email: "jill.doe@example.com" },
-    { sno: 5, name: "Jack Doe", age: 30, email: "jack.doe@example.com" },
-    { sno: 6, name: "Jake Doe", age: 28, email: "jake.doe@example.com" },
-    { sno: 7, name: "Jess Doe", age: 24, email: "jess.doe@example.com" },
-    { sno: 8, name: "Judy Doe", age: 29, email: "judy.doe@example.com" },
-  ];
-
   const [data, setData] = useState(initialData);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Filter data based on search input
+  const filteredData = data.filter(
+    (item) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  console.log(filteredData, "filteredData");
+  const numberOfPages = Math.ceil(filteredData.length / itemsPerPage);
+  console.log(numberOfPages, "numberOfPages");
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  console.log(startIndex, "startIndex");
+  console.log(currentPage, "currentPage");
+  const paginatedData = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+  console.log(paginatedData, "paginatedData");
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= numberOfPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  // Reset to page 1 when search term changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   // Handle sorting by age
   const handleSort = () => {
@@ -34,31 +48,24 @@ export default function Home() {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
-  // Filter data based on search input
-  const filteredData = data.filter(
-    (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
       <input
         type="text"
         placeholder="Search by name or email..."
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={handleSearchChange}
         className="border border-gray-300 rounded-md px-4 py-2 w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       <table className="border border-gray-300">
         <thead className="bg-gray-100">
           <tr>
-            <th className="px-4 py-2 border border-gray-300">S.No</th>
-            <th className="px-4 py-2 border border-gray-300">Name</th>
+            <th className="px-4 py-2 border border-black-300">S.No</th>
+            <th className="px-4 py-2 border border-black-300">Name</th>
             <th
               onClick={handleSort}
-              className="px-4 py-2 border border-gray-300 cursor-pointer"
+              className="px-4 py-2 border border-black-300 cursor-pointer"
             >
               Age {sortOrder === "asc" ? "↑" : "↓"}
             </th>
@@ -67,12 +74,16 @@ export default function Home() {
         </thead>
 
         <tbody>
-          {filteredData.length > 0 ? (
-            filteredData.map(({ sno, name, age, email }) => (
-              <tr key={sno} className="hover:bg-gray-50">
-                <td className="px-4 py-2 border border-gray-300 text-center">{sno}</td>
+          {paginatedData.length > 0 ? (
+            paginatedData.map(({ sno, name, age, email }) => (
+              <tr key={sno} className="hover:bg-black-50">
+                <td className="px-4 py-2 border border-gray-300 text-center">
+                  {sno}
+                </td>
                 <td className="px-4 py-2 border border-gray-300">{name}</td>
-                <td className="px-4 py-2 border border-gray-300 text-center">{age}</td>
+                <td className="px-4 py-2 border border-gray-300 text-center">
+                  {age}
+                </td>
                 <td className="px-4 py-2 border border-gray-300">{email}</td>
               </tr>
             ))
@@ -88,6 +99,45 @@ export default function Home() {
           )}
         </tbody>
       </table>
+      {filteredData.length > 0 && (
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="border border-gray-300 rounded-md px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+
+          {[...Array(numberOfPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => handlePageChange(i + 1)}
+              className={`border rounded-md px-4 py-2 ${
+                currentPage === i + 1
+                  ? "bg-blue-500 text-white border-blue-500"
+                  : "border-gray-300 hover:bg-gray-100"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === numberOfPages}
+            className="border border-gray-300 rounded-md px-4 py-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
+      <p className="text-sm text-gray-600">
+        Showing {paginatedData.length > 0 ? startIndex + 1 : 0} to{" "}
+        {Math.min(startIndex + itemsPerPage, filteredData.length)} of{" "}
+        {filteredData.length} results
+      </p>
     </div>
   );
 }
