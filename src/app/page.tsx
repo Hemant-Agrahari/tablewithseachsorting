@@ -16,17 +16,12 @@ export default function Home() {
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  console.log(filteredData, "filteredData");
   const numberOfPages = Math.ceil(filteredData.length / itemsPerPage);
-  console.log(numberOfPages, "numberOfPages");
   const startIndex = (currentPage - 1) * itemsPerPage;
-  console.log(startIndex, "startIndex");
-  console.log(currentPage, "currentPage");
   const paginatedData = filteredData.slice(
     startIndex,
     startIndex + itemsPerPage
   );
-  console.log(paginatedData, "paginatedData");
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= numberOfPages) {
       setCurrentPage(page);
